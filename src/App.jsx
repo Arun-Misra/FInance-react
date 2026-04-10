@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { FiActivity, FiBarChart2, FiCreditCard, FiDollarSign, FiRepeat } from 'react-icons/fi'
 import { ToastContainer } from 'react-toastify'
@@ -19,12 +19,33 @@ const navItems = [
   { to: '/analytics', label: 'Analytics', icon: FiBarChart2 },
 ]
 
+const THEME_STORAGE_KEY = 'flowfunds.theme'
+
 function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'qq1')
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme)
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'qq1' ? 'qq2' : 'qq1'))
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <h2>FlowFunds</h2>
-        <p>Personal finance and expense analytics</p>
+        <div className="sidebar-top">
+          <div>
+            <h2>FlowFunds</h2>
+            <p>Personal finance and expense analytics</p>
+          </div>
+
+          <button type="button" className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'qq1' ? 'Switch to Neu' : 'Switch to Normal'}
+          </button>
+        </div>
 
         <nav>
           {navItems.map((item) => {
