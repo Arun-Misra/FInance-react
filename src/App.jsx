@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { FiActivity, FiBarChart2, FiCreditCard, FiDollarSign } from 'react-icons/fi'
+import { FiActivity, FiBarChart2, FiCreditCard, FiDollarSign, FiRepeat } from 'react-icons/fi'
 import { ToastContainer } from 'react-toastify'
 import './App.css'
 
@@ -9,11 +9,13 @@ const Transactions = lazy(() => import('./pages/Transactions'))
 const AddTransaction = lazy(() => import('./pages/AddTransaction'))
 const Budget = lazy(() => import('./pages/Budget'))
 const Analytics = lazy(() => import('./pages/Analytics'))
+const CurrencyConverter = lazy(() => import('./pages/CurrencyConverter'))
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: FiActivity },
   { to: '/transactions', label: 'Transactions', icon: FiCreditCard },
   { to: '/budget', label: 'Budget', icon: FiDollarSign },
+  { to: '/currency-converter', label: 'Converter', icon: FiRepeat },
   { to: '/analytics', label: 'Analytics', icon: FiBarChart2 },
 ]
 
@@ -45,6 +47,7 @@ function App() {
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/transactions/new" element={<AddTransaction />} />
             <Route path="/budget" element={<Budget />} />
+            <Route path="/currency-converter" element={<CurrencyConverter />} />
             <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </Suspense>
