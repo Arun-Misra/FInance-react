@@ -44,6 +44,42 @@ const fallbackRates = {
   GBP: { INR: 105.0, USD: 1.27, EUR: 1.16, JPY: 188.0, AUD: 1.92, CAD: 1.72, SGD: 1.70 },
 }
 
+const FINANCE_CONTEXT_QUERY = '(finance OR financial OR economics OR economy OR business OR stock OR market OR investing OR inflation OR banking OR RBI)'
+
+function buildFinancialNewsQuery(query) {
+  const trimmed = (query || '').trim()
+
+  if (!trimmed) {
+    return FINANCE_CONTEXT_QUERY
+  }
+
+  return `(${trimmed}) AND ${FINANCE_CONTEXT_QUERY}`
+}
+
+function formatNewsPublishedAt(value, locale = 'en-IN') {
+  if (!value) return ''
+
+  const parsedDate = new Date(value)
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return ''
+  }
+
+  const now = new Date()
+  const articleLocal = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate())
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const dayDiff = Math.round((todayLocal - articleLocal) / (1000 * 60 * 60 * 24))
+
+  if (dayDiff === 0) return 'Today'
+  if (dayDiff === 1) return 'Yesterday'
+
+  return parsedDate.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 export async function fetchExchangeRate(baseCurrency = 'INR', targetCurrency = 'USD') {
   if (baseCurrency === targetCurrency) {
     return 1
@@ -118,6 +154,7 @@ export async function fetchFinancialNews(options = {}) {
     page = 1,
     fallbackOnEmpty = true,
   } = options
+  const financeQuery = buildFinancialNewsQuery(query)
 
   if (!apiKey) {
     return fallbackOnEmpty
@@ -134,12 +171,13 @@ export async function fetchFinancialNews(options = {}) {
   try {
     const response = await newsApi.get('/everything', {
       params: {
-        q: query,
+        q: financeQuery,
         ...(from ? { from } : {}),
         ...(to ? { to } : {}),
         ...(domains ? { domains } : {}),
         ...(excludeDomains ? { excludeDomains } : {}),
         language,
+        searchIn: 'title,description',
         sortBy: 'publishedAt',
         pageSize,
         page,
@@ -168,11 +206,7 @@ export async function fetchFinancialNews(options = {}) {
         source: article.source?.name || 'NewsAPI',
         description: article.description || article.content || 'No summary available.',
         url: article.url,
-        publishedAt: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        }) : '',
+        publishedAt: formatNewsPublishedAt(article.publishedAt, 'en-IN'),
       })),
       totalResults,
     }
