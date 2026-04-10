@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../data/categories'
-import { useFinance } from '../context/FinanceContext'
+import { useFinance } from '../context/useFinance'
 
 const schema = yup.object({
   title: yup.string().required('Title is required').max(60, 'Title is too long'),
@@ -40,16 +40,17 @@ export default function AddTransaction() {
   const {
     register,
     handleSubmit,
-    watch,
     reset,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues,
   })
 
-  const currentType = watch('type')
+  const currentType = useWatch({ control, name: 'type' })
+  const selectedCategory = useWatch({ control, name: 'category' })
 
   useEffect(() => {
     if (editingTransaction) {
@@ -63,11 +64,10 @@ export default function AddTransaction() {
   const categories = currentType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
 
   useEffect(() => {
-    const selectedCategory = watch('category')
     if (!categories.includes(selectedCategory)) {
       setValue('category', categories[0])
     }
-  }, [categories, setValue, watch])
+  }, [categories, selectedCategory, setValue])
 
   const onSubmit = async (values) => {
     const payload = {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useFinance } from '../context/FinanceContext'
+import { useFinance } from '../context/useFinance'
 
 export function useBudget() {
   const { budget, totalExpenses } = useFinance()

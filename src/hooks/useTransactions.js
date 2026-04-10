@@ -1,6 +1,6 @@
 import { compareDesc, isAfter, isBefore, parseISO } from 'date-fns'
 import { useMemo } from 'react'
-import { useFinance } from '../context/FinanceContext'
+import { useFinance } from '../context/useFinance'
 
 function parseDateSafe(value) {
   try {

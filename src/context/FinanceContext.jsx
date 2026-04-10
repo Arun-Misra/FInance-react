@@ -1,12 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import { format, parseISO } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
+import { FinanceContext } from './FinanceContextObject'
 
 const TRANSACTIONS_STORAGE_KEY = 'finance.transactions'
 const BUDGET_STORAGE_KEY = 'finance.budget'
-
-const FinanceContext = createContext(null)
 
 function parseDateValue(value) {
   try {
@@ -186,13 +185,4 @@ export function FinanceProvider({ children }) {
   )
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>
-}
-
-export function useFinance() {
-  const context = useContext(FinanceContext)
-  if (!context) {
-    throw new Error('useFinance must be used within FinanceProvider')
-  }
-
-  return context
 }

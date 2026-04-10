@@ -165,6 +165,12 @@
   background: #fff;
 }
 
+.filters-grid .btn-secondary {
+  justify-self: end;
+  width: fit-content;
+  min-height: 20px;
+}
+
 .list-stack {
   display: grid;
   gap: 12px;

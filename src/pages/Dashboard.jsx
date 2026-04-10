@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useFinance } from '../context/FinanceContext'
+import { useFinance } from '../context/useFinance'
 import { useCurrency } from '../hooks/useCurrency'
 import { BudgetCard } from '../components/BudgetCard'
 import { TransactionCard } from '../components/TransactionCard'
 import { MonthlyTrendChart, SpendingPieChart } from '../components/Charts/FinanceCharts'
 import { fetchFinancialNews } from '../services/api'
 
+const DEFAULT_NEWS_QUERY = 'economy OR business OR markets'
+
 export default function Dashboard() {
-  const defaultNewsQuery = 'economy OR business OR markets'
   const navigate = useNavigate()
   const {
     loading,
@@ -32,10 +33,16 @@ export default function Dashboard() {
 
   const recentTransactions = transactions.slice(0, 4)
   const previewNews = newsItems.slice(0, 2)
-  const activeNewsQuery = newsQuery.trim() || defaultNewsQuery
+  const activeNewsQuery = newsQuery.trim() || DEFAULT_NEWS_QUERY
   const hasMoreNews = newsItems.length < newsTotalResults || newsItems.length % 8 === 0
 
-  const loadNews = (query = activeNewsQuery, page = 1, append = false) => {
+  const closeNewsModal = useCallback(() => {
+    setNewsOpen(false)
+    setNewsQuery('')
+    setNewsPage(1)
+  }, [])
+
+  const loadNews = useCallback((query = DEFAULT_NEWS_QUERY, page = 1, append = false) => {
     if (append) {
       setNewsLoadingMore(true)
     } else {
@@ -51,23 +58,23 @@ export default function Dashboard() {
         setNewsLoading(false)
         setNewsLoadingMore(false)
       })
-  }
-
-  useEffect(() => {
-    loadNews(defaultNewsQuery, 1, false)
-
-    return undefined
   }, [])
 
-  useEffect(() => {
-    if (!newsOpen) return undefined
-
+  const openNewsModal = useCallback(() => {
+    setNewsOpen(true)
     setNewsPage(1)
     setNewsQuery('')
-    loadNews(defaultNewsQuery, 1, false)
+    setNewsTotalResults(0)
+    loadNews(DEFAULT_NEWS_QUERY, 1, false)
+  }, [loadNews])
 
-    return undefined
-  }, [newsOpen])
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadNews(DEFAULT_NEWS_QUERY, 1, false)
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [loadNews])
 
   useEffect(() => {
     if (!newsOpen) return undefined
@@ -86,19 +93,13 @@ export default function Dashboard() {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [newsOpen])
+  }, [newsOpen, closeNewsModal])
 
   const handleNewsSearch = (event) => {
     event.preventDefault()
     setNewsPage(1)
     setNewsTotalResults(0)
-    loadNews(newsQuery.trim() || defaultNewsQuery, 1, false)
-  }
-
-  const closeNewsModal = () => {
-    setNewsOpen(false)
-    setNewsQuery('')
-    setNewsPage(1)
+    loadNews(newsQuery.trim() || DEFAULT_NEWS_QUERY, 1, false)
   }
 
   const handleLoadMoreNews = () => {
@@ -147,7 +148,7 @@ export default function Dashboard() {
         <section className="card news-card">
           <div className="section-title">
             <h2>Financial News</h2>
-            <button type="button" className="text-link" onClick={() => setNewsOpen(true)}>
+            <button type="button" className="text-link" onClick={openNewsModal}>
               See more
             </button>
           </div>
@@ -225,7 +226,7 @@ export default function Dashboard() {
                     {newsLoadingMore ? 'Loading more news...' : 'Load more news'}
                   </button>
                 ) : (
-                  <p className="news-end">You’ve reached the latest headlines.</p>
+                  <p className="news-end">You've reached the latest headlines.</p>
                 )}
               </div>
             ) : (

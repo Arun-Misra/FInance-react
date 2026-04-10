@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { BudgetCard } from '../components/BudgetCard'
 import { useBudget } from '../hooks/useBudget'
 import { useCurrency } from '../hooks/useCurrency'
-import { useFinance } from '../context/FinanceContext'
+import { useFinance } from '../context/useFinance'
 import { fetchExchangeRate } from '../services/api'
 
 export default function Budget() {
