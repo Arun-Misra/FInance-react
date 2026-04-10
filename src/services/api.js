@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+// Use proxied endpoints in development to avoid CORS issues.
+const EXCHANGE_BASE = import.meta.env.DEV ? '/api/exchange' : 'https://api.frankfurter.app'
+
 const exchangeApi = axios.create({
-  baseURL: 'https://api.frankfurter.app',
+  baseURL: EXCHANGE_BASE,
   timeout: 8000,
 })
 
@@ -45,7 +48,7 @@ export async function fetchExchangeRate(baseCurrency = 'INR', targetCurrency = '
   if (baseCurrency === targetCurrency) {
     return 1
   }
-
+  // Try primary API (Frankfurter)
   try {
     const response = await exchangeApi.get('/latest', {
       params: {
@@ -57,20 +60,49 @@ export async function fetchExchangeRate(baseCurrency = 'INR', targetCurrency = '
 
     const rate = response?.data?.rates?.[targetCurrency]
 
-    if (!rate) {
-      throw new Error('Exchange rate is unavailable right now.')
+    if (rate != null) {
+      return rate
     }
 
-    return rate
-  } catch {
-    const fallbackRate = fallbackRates[baseCurrency]?.[targetCurrency]
-
-    if (!fallbackRate) {
-      throw new Error('Exchange rate is unavailable right now.')
-    }
-
-    return fallbackRate
+    // If primary API returned but without the expected rate, try secondary source
+    console.warn('fetchExchangeRate: primary API did not return rate, trying secondary API')
+  } catch (err) {
+    console.warn('fetchExchangeRate: primary API request failed', err && err.message ? err.message : err)
   }
+
+  // Try secondary API (exchangerate.host) before falling back to hardcoded rates
+  try {
+    const secondaryUrl = import.meta.env.DEV ? '/api/exchange2/latest' : 'https://api.exchangerate.host/latest'
+
+    const resp = await axios.get(secondaryUrl, {
+      params: {
+        base: baseCurrency,
+        symbols: targetCurrency,
+      },
+      timeout: 8000,
+    })
+
+    const rate2 = resp?.data?.rates?.[targetCurrency]
+
+    if (rate2 != null) {
+      console.info('fetchExchangeRate: used exchangerate.host as secondary source')
+      return rate2
+    }
+
+    console.warn('fetchExchangeRate: exchangerate.host did not return rate')
+  } catch (err) {
+    console.warn('fetchExchangeRate: secondary API request failed', err && err.message ? err.message : err)
+  }
+
+  // Last-resort static fallback
+  const fallbackRate = fallbackRates[baseCurrency]?.[targetCurrency]
+
+  if (!fallbackRate) {
+    throw new Error('Exchange rate is unavailable right now.')
+  }
+
+  console.warn('fetchExchangeRate: using hardcoded fallback rate')
+  return fallbackRate
 }
 
 export async function fetchFinancialNews(options = {}) {
