@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-Dw2cE7zH.js";import{g as t}from"./charts-Y2GE555c.js";import{t as n}from"./FinanceContextObject-CaJIGWvy.js";var r=e(t(),1);function i(){let e=(0,r.useContext)(n);if(!e)throw Error(`useFinance must be used within FinanceProvider`);return e}export{i as t};

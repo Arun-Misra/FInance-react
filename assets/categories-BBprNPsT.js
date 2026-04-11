@@ -1,0 +1,1 @@
+var e=[`Food`,`Travel`,`Rent`,`Shopping`,`Entertainment`,`Health`,`Utilities`,`Subscriptions`],t=[`Salary`,`Freelance`,`Investment`,`Gift`,`Other Income`],n=[`All`,...new Set([...e,...t])];export{e as n,t as r,n as t};
